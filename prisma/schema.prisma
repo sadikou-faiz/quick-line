@@ -1,0 +1,52 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Company {
+  id        String    @id @default(uuid())
+  name      String
+  email     String    @unique
+  pageName  String?   @unique
+  createdAt DateTime  @default(now())
+  services  Service[]
+  posts     Post[]
+}
+
+model Service {
+  id        String   @id @default(uuid())
+  name      String
+  avgTime   Int
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id])
+  tickets   Ticket[]
+}
+
+model Post {
+  id        String   @id @default(uuid())
+  name      String
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id])
+  tickets   Ticket[]
+  createdAt DateTime @default(now())
+}
+
+model Ticket {
+  id           String   @id @default(uuid())
+  serviceId    String
+  num          String   @unique
+  nameComplete String
+  status       String   @default("PENDING")
+  createdAt    DateTime @default(now())
+  service      Service  @relation(fields: [serviceId], references: [id] , onDelete: Cascade) 
+  postName     String?
+  postId       String?
+  post         Post?    @relation(fields: [postId], references: [id])
+}
