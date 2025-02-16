@@ -4,7 +4,8 @@ import Wrapper from '../components/Wrapper'
 import { useUser } from '@clerk/nextjs'
 import { createService, deleteServiceById, getServicesByEmail } from '../actions'
 import { Service } from '@prisma/client'
-import { Clock, Trash } from 'lucide-react'
+import { Clock, ClockArrowUp, Trash } from 'lucide-react'
+import EmptyState from '../components/EmptyState'
 
 const page = () => {
   const { user } = useUser()
@@ -53,8 +54,8 @@ const page = () => {
     )
     if (confirmation) {
       try {
-          await deleteServiceById(serviceId)
-          fetchServices()
+        await deleteServiceById(serviceId)
+        fetchServices()
       } catch (error) {
         console.error(error)
       }
@@ -80,7 +81,7 @@ const page = () => {
           </div>
           <span className='label-text'>Temp moyen du service</span>
           <label className="input input-bordered flex items-center input-sm gap-2">
-            Temps Moyen
+            <ClockArrowUp className='w-4 h-4' />
             <input
               type="number"
               className="grow"
@@ -105,7 +106,10 @@ const page = () => {
             </div>
           ) : services.length === 0 ? (
             <div>
-
+              <EmptyState
+                message={'Aucun service pour le moment'}
+                IconComponent='Telescope'
+              />
             </div>
           ) : (
             <div>

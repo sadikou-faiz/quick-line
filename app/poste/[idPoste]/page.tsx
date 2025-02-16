@@ -1,19 +1,21 @@
 "use client"
-import Image from "next/image";
-import Wrapper from "./components/Wrapper";
-import { useUser } from "@clerk/nextjs";
-import { getPendingTicketsByEmail } from "./actions";
-import { useEffect, useState } from "react";
-import { Ticket } from "@/type";
-import EmptyState from "./components/EmptyState";
-import TicketComponent from "./components/TicketComponent";
+import { getPendingTicketsByEmail, getPostNameById } from '@/app/actions'
+import EmptyState from '@/app/components/EmptyState'
+import TicketComponent from '@/app/components/TicketComponent'
+import Wrapper from '@/app/components/Wrapper'
+import { Ticket } from '@/type'
+import { useUser } from '@clerk/nextjs'
+import Link from 'next/link'
+import React, { useEffect, useState } from 'react'
 
-
-export default function Home() {
+const page = ({ params }: { params: Promise<{ idPoste: string }> }) => {
   const { user } = useUser()
   const email = user?.primaryEmailAddress?.emailAddress
   const [tickets, setTickets] = useState<Ticket[]>([])
   const [countdown, setCountdown] = useState<number>(5)
+  const [idPoste, setIdPoste] = useState<string | null>(null)
+  const [namePoste, setNamePoste] = useState<string | null>(null)
+
 
   const fetchTickets = async () => {
     if (email) {
@@ -33,7 +35,6 @@ export default function Home() {
   }, [email])
 
 
-
   useEffect(() => {
     const handleCountdownAndRefresh = () => {
       if (countdown === 0) {
@@ -49,12 +50,31 @@ export default function Home() {
 
   }, [countdown])
 
+  const getPosteName = async () => {
+    try {
+      const resolvedParams = await params;
+      setIdPoste(resolvedParams.idPoste)
+
+      const postName = await getPostNameById(resolvedParams.idPoste)
+      if (postName)
+        setNamePoste(postName)
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
+  useEffect(() => {
+    getPosteName()
+  }, [params])
+
+
+
 
   return (
     <Wrapper>
 
       <div className="flex justify-between mb-4">
-        <h1 className="text-2xl font-bold">Vos Tickets</h1>
+        <h1 className="text-2xl font-bold"> <span>Poste</span> <span className='badge badge-accent'>{namePoste ?? "aucun poste" }</span></h1>
         <div className="flex items-center">
           <span className="relative flex size-3">
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent/30 opacity-75"></span>
@@ -63,6 +83,11 @@ export default function Home() {
           <div className="ml-2">
             ({countdown}s)
           </div>
+          <Link href={`/call/${idPoste}`}
+            className={`btn btn-sm ml-4 ${!namePoste && " btn-disabled"}`}
+          >
+            Appeler le suivant
+          </Link>
         </div>
       </div>
 
@@ -97,3 +122,5 @@ export default function Home() {
     </Wrapper>
   );
 }
+
+export default page
